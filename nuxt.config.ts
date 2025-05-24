@@ -36,6 +36,12 @@ export default defineNuxtConfig({
         name: "English",
         isCatchallLocale: true,
       },
+      {
+        code: "ko",
+        language: "ko-KR",
+        file: "ko.json",
+        name: "한국어",
+      },
     ],
   },
   nitro: {
