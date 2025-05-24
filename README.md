@@ -32,6 +32,12 @@ Generates the static website in the `dist` directory.
 pnpm run generate
 ```
 
+### Self-hosting
+
+1. Clone this repo
+2. Build: `docker build --tag localsend-web --file Containerfile`
+3. Run: `docker run --rm --publish 8080:8080 localsend-web`
+
 ## Contributing
 
 ### Adding a new language

@@ -1,0 +1,25 @@
+{
+  "index": {
+    "seo": {
+      "title": "LocalSend Web",
+      "description": "Tarayıcınız ve LocalSend çalıştıran diğer cihazlar arasında dosya paylaşın."
+    },
+    "connecting": "Bağlanıyor...",
+    "empty": {
+      "title": "LocalSend'i başka bir cihazda açın.",
+      "deviceHint": "Bu siteyi başka bir tarayıcıda veya yerel sürümde (v1.18.0 veya daha yeni) açın.",
+      "lanHint": "Sadece aynı ağda bulunan cihazlar gösterilir."
+    },
+    "you": "Cihaz adı:",
+    "pin": {
+      "label": "PIN: ",
+      "none": "yok"
+    },
+    "enterAlias": "Ad girin",
+    "enterPin": "PIN girin",
+    "progress": {
+      "titleSending": "Dosyalar gönderiliyor...",
+      "titleReceiving": "Dosyalar alınıyor..."
+    }
+  }
+}
