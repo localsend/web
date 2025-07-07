@@ -8,6 +8,14 @@ RUN corepack enable pnpm && \
     pnpm install && \
     pnpm run generate
 
-FROM nginxinc/nginx-unprivileged:stable-alpine-slim
-COPY --from=builder /data/.output/public /usr/share/nginx/html
-
+FROM caddy:alpine
+COPY --from=builder /data/.output/public /usr/share/caddy
+COPY <<"EOT" /etc/caddy/Caddyfile
+https:// {
+    file_server
+    root * /usr/share/caddy
+    tls internal {
+	    on_demand
+    }
+}
+EOT
