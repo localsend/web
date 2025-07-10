@@ -5,6 +5,7 @@
       "description": "Tarayıcınız ve LocalSend çalıştıran diğer cihazlar arasında dosya paylaşın."
     },
     "connecting": "Bağlanıyor...",
+    "webCryptoNotSupported": "Tarayıcınız LocalSend'i desteklemiyor: Web Crypto API gereklidir.",
     "empty": {
       "title": "LocalSend'i başka bir cihazda açın.",
       "deviceHint": "Bu siteyi başka bir tarayıcıda veya yerel sürümde (v1.18.0 veya daha yeni) açın.",
