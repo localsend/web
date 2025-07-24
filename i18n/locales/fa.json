@@ -19,8 +19,8 @@
     "enterAlias": "نام را وارد کنید",
     "enterPin": "گذرواژه را وارد کنید",
     "progress": {
-      "titleSending": "فرستادن پرونده‌ها...",
-      "titleReceiving": "گرفتن پرونده‌ها..."
+      "titleSending": "در حال فرستادن پرونده‌ها...",
+      "titleReceiving": "در حال گرفتن پرونده‌ها..."
     }
   }
 }
