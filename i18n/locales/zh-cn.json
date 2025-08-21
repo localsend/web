@@ -1,0 +1,26 @@
+{
+  "index": {
+    "seo": {
+      "title": "LocalSend 网页版",
+      "description": "在你的浏览器和其他运行LocalSend的设备之间流转你的文件。"
+    },
+    "connecting": "连接中...",
+    "webCryptoNotSupported": "你的浏览器暂不支持LocalSend：需要浏览器支持Web Crypto API。",
+    "empty": {
+      "title": "在另外一台设备上打开LocalSend",
+      "deviceHint": "在另外一个浏览器上打开本站或原生版本（1.18.0或以上版本）",
+      "lanHint": "只有在同一网络下的设备才会显示在这里"
+    },
+    "you": "本机名称:",
+    "pin": {
+      "label": "PIN: ",
+      "none": "未设置"
+    },
+    "enterAlias": "设置本机名称",
+    "enterPin": "设置 PIN",
+    "progress": {
+      "titleSending": "发送文件中...",
+      "titleReceiving": "文件接收中..."
+    }
+  }
+}

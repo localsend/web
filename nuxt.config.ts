@@ -54,6 +54,12 @@ export default defineNuxtConfig({
         file: "tr.json",
         name: "Türkçe",
       },
+      {
+        code: "zh",
+        language: "zh-CN",
+        file: "zh-cn.json",
+        name: "简体中文",
+      },
     ],
   },
   nitro: {
