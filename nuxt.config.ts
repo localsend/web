@@ -49,6 +49,12 @@ export default defineNuxtConfig({
         name: "한국어",
       },
       {
+        code: "sk",
+        language: "sk-SK",
+        file: "sk.json",
+        name: "Slovenčina",
+      },
+      {
         code: "tr",
         language: "tr-TR",
         file: "tr.json",
