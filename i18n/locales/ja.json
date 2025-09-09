@@ -1,0 +1,26 @@
+{
+  "index": {
+    "seo": {
+      "title": "LocalSend Web",
+      "description": "ブラウザとLocalSendを実行している他のデバイス間でファイルを共有します。"
+    },
+    "connecting": "接続中...",
+    "webCryptoNotSupported": "あなたのブラウザはLocalSendをサポートしていません：Web Crypto APIが必要です。",
+    "empty": {
+      "title": "別のデバイスでLocalSendを開きます。",
+      "deviceHint": "別のブラウザまたはネイティブ版（v1.18.0以上）でこのサイトを開いてください。",
+      "lanHint": "同じネットワーク内のデバイスのみが表示されます。"
+    },
+    "you": "あなたは:",
+    "pin": {
+      "label": "PIN: ",
+      "none": "何も"
+    },
+    "enterAlias": "名前を入力してください",
+    "enterPin": "PINを入力してください",
+    "progress": {
+      "titleSending": "ファイルを送信中...",
+      "titleReceiving": "ファイルを受信中..."
+    }
+  }
+}

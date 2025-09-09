@@ -1,0 +1,26 @@
+{
+  "index": {
+    "seo": {
+      "title": "LocalSend Web",
+      "description": "在浏览器和运行 LocalSend 的其他设备之间共享文件。"
+    },
+    "connecting": "连接。。。",
+    "webCryptoNotSupported": "您的浏览器不支持 LocalSend：需要 Web Crypto API。",
+    "empty": {
+      "title": "在另一台设备上打开 LocalSend。",
+      "deviceHint": "在其他浏览器或本机版本（v1.18.0 或更高版本）中打开此站点。",
+      "lanHint": "仅显示同一网络中的设备。"
+    },
+    "you": "你是：",
+    "pin": {
+      "label": "PIN: ",
+      "none": "没有"
+    },
+    "enterAlias": "输入名称",
+    "enterPin": "输入 PIN 码",
+    "progress": {
+      "titleSending": "正在发送文件...",
+      "titleReceiving": "正在接收文件..."
+    }
+  }
+}

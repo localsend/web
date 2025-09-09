@@ -2,15 +2,16 @@
   "index": {
     "seo": {
       "title": "LocalSend Web",
-      "description": "브라우저와 LocalSend를 실행하는 다른 장치 간에 파일을 공유하세요."
+      "description": "브라우저와 LocalSend를 실행하는 다른 장치 간에 파일을 공유합니다."
     },
-    "connecting": "연결 중...",
+    "connecting": "연결...",
+    "webCryptoNotSupported": "브라우저가 LocalSend를 지원하지 않음: 웹 암호화 API가 필요합니다.",
     "empty": {
-      "title": "다른 장치에서 LocalSend를 실행하세요.",
+      "title": "다른 장치에서 LocalSend를 엽니다.",
       "deviceHint": "다른 브라우저 또는 기본 버전(v1.18.0 이상)에서 이 사이트를 엽니다.",
-      "lanHint": "동일 네트워크에 있는 장치만 표시됩니다."
+      "lanHint": "동일한 네트워크에 있는 장치만 표시됩니다."
     },
-    "you": "당신은:",
+    "you": "너는:",
     "pin": {
       "label": "PIN: ",
       "none": "없음"
@@ -18,8 +19,8 @@
     "enterAlias": "이름 입력",
     "enterPin": "PIN 입력",
     "progress": {
-      "titleSending": "파일 전송중...",
-      "titleReceiving": "파일 받는중..."
+      "titleSending": "파일 보내기 중...",
+      "titleReceiving": "파일 수신 중..."
     }
   }
 }

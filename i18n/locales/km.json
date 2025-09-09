@@ -5,6 +5,7 @@
       "description": "ចែករំលែកឯកសាររវាងកម្មវិធីរុករក(browser)របស់អ្នក និងឧបករណ៍ផ្សេងទៀតដែលដំណើរការ LocalSend។"
     },
     "connecting": "កំពុងភ្ជាប់...",
+    "webCryptoNotSupported": "Your browser does not support LocalSend: Web Crypto API is required.",
     "empty": {
       "title": "បើកកម្មវិធី LocalSend នៅលើឧបករណ៍ផ្សេងទៀត។",
       "deviceHint": "បើកគេហទំព័រនេះនៅក្នុងកម្មវិធីរុករក(browser)ផ្សេង ឬបើកក្នុងកម្មវិធី LocalSend ផ្លូវការលើឧបករណ៍របស់អ្នក (v1.18.0 ឬថ្មីជាងនេះ។)",
@@ -12,7 +13,7 @@
     },
     "you": "អ្នកគឺជា៖",
     "pin": {
-      "label": "លេខកូដ PIN៖ ",
+      "label": "PIN: ",
       "none": "គ្មាន"
     },
     "enterAlias": "សូមបញ្ចូលឈ្មោះ",
