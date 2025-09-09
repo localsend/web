@@ -37,6 +37,12 @@ export default defineNuxtConfig({
         isCatchallLocale: true,
       },
       {
+        code: "ja",
+        language: "ja-JP",
+        file: "ja.json",
+        name: "日本語",
+      },
+      {
         code: "km",
         language: "km-KH",
         file: "km.json",
@@ -53,6 +59,30 @@ export default defineNuxtConfig({
         language: "tr-TR",
         file: "tr.json",
         name: "Türkçe",
+      },
+      {
+        code: "zh-cn",
+        language: "zh-CN",
+        file: "zh-cn.json",
+        name: "简体中文-中国大陆",
+      },
+      {
+        code: "zh-hk",
+        language: "zh-HK",
+        file: "zh-hk.json",
+        name: "繁体中文-中国香港",
+      },
+      {
+        code: "zh-mo",
+        language: "zh-MO",
+        file: "zh-mo.json",
+        name: "繁体中文-中国澳门",
+      },
+      {
+        code: "zh-tw",
+        language: "zh-TW",
+        file: "zh-tw.json",
+        name: "繁体中文-中国台湾",
       },
     ],
   },
