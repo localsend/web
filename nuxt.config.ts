@@ -37,6 +37,12 @@ export default defineNuxtConfig({
         isCatchallLocale: true,
       },
       {
+        code: "es",
+        language: "es-ES",
+        file: "es.json",
+        name: "Español",
+      },
+      {
         code: "km",
         language: "km-KH",
         file: "km.json",
