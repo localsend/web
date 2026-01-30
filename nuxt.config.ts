@@ -37,13 +37,11 @@ export default defineNuxtConfig({
         isCatchallLocale: true,
       },
       {
-       code: "no",
-       language: "no-NO",
-       file: "no.json",
-       name: "Norsk",
-       isCatchallLocale: true
+        code: "es",
+        language: "es-ES",
+        file: "es.json",
+        name: "Español",
       },
-
       {
         code: "km",
         language: "km-KH",
@@ -57,11 +55,29 @@ export default defineNuxtConfig({
         name: "한국어",
       },
       {
+        code: "no",
+        language: "no-NO",
+        file: "no.json",
+        name: "Norsk",
+      },
+      {
+        code: "hu",
+        language: "hu-HU",
+        file: "hu.json",
+        name: "Magyar",
+      },
+      {
         code: "tr",
         language: "tr-TR",
         file: "tr.json",
         name: "Türkçe",
       },
+      {
+        code: "pt",
+        language: "pt-BR",
+        file: "pt.json",
+        name: "Português",
+      }
     ],
   },
   nitro: {
