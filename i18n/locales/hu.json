@@ -1,0 +1,26 @@
+{
+  "index": {
+    "seo": {
+      "title": "LocalSend Web",
+      "description": "Ossz meg fájlokat a böngésződ és más a LocalSendet futtató eszközeid között."
+    },
+    "connecting": "Kapcsolódás...",
+    "webCryptoNotSupported": "A böngésződ nem támogatja a LocalSendet, mert a Web Crypto API szükséges hozzá.",
+    "empty": {
+      "title": "Nyisd meg a LocalSendet egy másik eszközön is.",
+      "deviceHint": "Nyisd meg ezt az oldalt a böngésződben vagy natív alkalmazásban (v1.18.0 vagy újabb).",
+      "lanHint": "Csak a jelen hálózaton lévő eszközök láthatóak."
+    },
+    "you": "A neved:",
+    "pin": {
+      "label": "PIN: ",
+      "none": "nincs"
+    },
+    "enterAlias": "Adj meg egy nevet:",
+    "enterPin": "Adj meg egy PIN-kódot:",
+    "progress": {
+      "titleSending": "Fájlok küldése folyamatban...",
+      "titleReceiving": "Fájlok fogadása folyamatban..."
+    }
+  }
+}

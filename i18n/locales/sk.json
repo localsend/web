@@ -1,0 +1,26 @@
+{
+  "index": {
+    "seo": {
+      "title": "LocalSend Web",
+      "description": "Zdieľajte súbory medzi vaším prehliadačom a inými zariadeniami, na ktorých beží LocalSend."
+    },
+    "connecting": "Pripája sa...",
+    "webCryptoNotSupported": "Váš prehliadač nepodporuje LocalSend: vyžaduje sa Web Crypto API.",
+    "empty": {
+      "title": "Otvorte LocalSend na druhom zariadení.",
+      "deviceHint": "Otvorte túto stránku v inom prehliadači alebo v natívnej verzii (v1.18.0 alebo novšej).",
+      "lanHint": "Zobrazia sa len zariadenia v tej istej sieti."
+    },
+    "you": "Ste:",
+    "pin": {
+      "label": "PIN: ",
+      "none": "žiadny"
+    },
+    "enterAlias": "Zadajte meno",
+    "enterPin": "Zadajte PIN",
+    "progress": {
+      "titleSending": "Odosielanie súborov...",
+      "titleReceiving": "Prijímanie súborov..."
+    }
+  }
+}
