@@ -1,0 +1,26 @@
+{
+  "index": {
+    "seo": {
+      "title": "LocalSend Web",
+      "description": "Comparte archivos entre tu navegador y otros dispositivos que usan LocalSend."
+    },
+    "connecting": "Conectando...",
+    "webCryptoNotSupported": "Tu navegador no es compatible con LocalSend: se requiere la API Web Crypto.",
+    "empty": {
+      "title": "Abre LocalSend en otro dispositivo.",
+      "deviceHint": "Abre este sitio en otro navegador o en la versión nativa (v1.18.0 o posterior).",
+      "lanHint": "Solo se muestran dispositivos en la misma red."
+    },
+    "you": "Tú eres:",
+    "pin": {
+      "label": "PIN: ",
+      "none": "ninguno"
+    },
+    "enterAlias": "Escribe tu nombre",
+    "enterPin": "Escribe el PIN",
+    "progress": {
+      "titleSending": "Enviando archivos...",
+      "titleReceiving": "Recibiendo archivos..."
+    }
+  }
+}
