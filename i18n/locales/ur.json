@@ -1,0 +1,26 @@
+{
+  "index": {
+    "seo": {
+      "title": "LocalSend ویب",
+      "description": "اپنے براؤزر اور LocalSend چلانے والے دیگر آلات کے درمیان فائلیں شیئر کریں۔"
+    },
+    "connecting": "جوڑ رہا ہے...",
+    "webCryptoNotSupported": "آپ کا براؤزر LocalSend کو سپورٹ نہیں کرتا: Web Crypto API درکار ہے۔",
+    "empty": {
+      "title": "کسی اور آلے پر LocalSend کھولیں۔",
+      "deviceHint": "اس سائٹ کو کسی اور براؤزر یا نیٹو ورژن (v1.18.0 یا اس سے نئے) میں کھولیں۔",
+      "lanHint": "صرف ایک ہی نیٹ ورک میں موجود آلات دکھائے جاتے ہیں۔"
+    },
+    "you": "آپ ہیں:",
+    "pin": {
+      "label": "PIN: ",
+      "none": "کوئی نہیں"
+    },
+    "enterAlias": "نام درج کریں",
+    "enterPin": "PIN درج کریں",
+    "progress": {
+      "titleSending": "فائلیں بھیج رہا ہے...",
+      "titleReceiving": "فائلیں موصول ہو رہی ہیں..."
+    }
+  }
+}
