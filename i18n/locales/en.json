@@ -20,7 +20,24 @@
     "enterPin": "Enter PIN",
     "progress": {
       "titleSending": "Sending files...",
-      "titleReceiving": "Receiving files..."
+      "titleReceiving": "Receiving files...",
+      "total": "Total",
+      "files": "Files",
+      "transferComplete": "Transfer complete!",
+      "transferFailed": "Transfer failed"
+    },
+    "connection": {
+      "connected": "Connected",
+      "reconnecting": "Reconnecting...",
+      "disconnected": "Disconnected"
+    },
+    "dragDrop": {
+      "hint": "Drop files here to send",
+      "noPeer": "No device available to send files"
+    },
+    "dialog": {
+      "confirm": "OK",
+      "cancel": "Cancel"
     }
   }
 }
