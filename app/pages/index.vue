@@ -72,9 +72,7 @@
       </div>
     </div>
 
-    <ClientOnly>
-      <SessionDialog />
-    </ClientOnly>
+    <SessionDialog />
   </div>
 </template>
 
