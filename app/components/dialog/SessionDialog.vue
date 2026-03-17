@@ -35,26 +35,29 @@ const { t } = useI18n();
 
 // Wake lock: keep screen on during file transfer
 // useWakeLock registers its own onUnmounted cleanup, so we don't need one here.
-const { acquire, release } = useWakeLock()
+const { acquire, release } = useWakeLock();
 
 onMounted(() => {
   // Check if session is already active (e.g., page refresh during transfer)
   if (store.session.state !== SessionState.idle) {
-    acquire()
+    acquire();
   }
-})
+});
 
 // Acquire/release wake lock when transfer starts or ends
 watch(
   () => store.session.state,
   (newState, oldState) => {
     if (newState !== SessionState.idle && oldState === SessionState.idle) {
-      acquire()
-    } else if (newState === SessionState.idle && oldState !== SessionState.idle) {
-      release()
+      acquire();
+    } else if (
+      newState === SessionState.idle &&
+      oldState !== SessionState.idle
+    ) {
+      release();
     }
-  }
-)
+  },
+);
 
 const totalCurr = computed(() => {
   return formatBytes(store.session.curr);
