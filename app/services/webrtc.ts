@@ -11,7 +11,8 @@ import { generateClientTokenFromNonce } from "~/services/crypto";
 
 export const protocolVersion = "2.3";
 
-export const defaultStun = ["stun:stun.l.google.com:19302"];
+// Empty = no STUN, only local IP candidates (sufficient for LAN)
+export const defaultStun: string[] = [];
 
 export async function sendFiles({
   signaling,
