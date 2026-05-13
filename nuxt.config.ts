@@ -113,6 +113,12 @@ export default defineNuxtConfig({
         file: "zh-CN.json",
         name: "简体中文",
       },
+      {
+        code: "ja-JP",
+        language: "ja-JP",
+        file: "ja-JP.json",
+        name: "日本語"
+      }
     ],
   },
   nitro: {
