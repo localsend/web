@@ -106,6 +106,8 @@ const runtimeConfig = useRuntimeConfig();
 
 const { t } = useI18n();
 
+const sharedFiles = ref<File[]>([]);
+
 const { open: openFileDialog, onChange } = useFileDialog();
 
 onChange(async (files) => {
@@ -131,7 +133,20 @@ const targetId = ref("");
 
 const selectPeer = (id: string) => {
   targetId.value = id;
-  openFileDialog();
+
+  if (sharedFiles.value.length > 0) {
+    // Came from share target — use already received files
+    const files = sharedFiles.value;
+    sharedFiles.value = [];
+    startSendSession({
+      files: files as unknown as FileList,
+      targetId: id,
+      onPin: async () => prompt(t("index.enterPin")),
+    });
+  } else {
+    // Normal flow — open file dialog
+    openFileDialog();
+  }
 };
 
 const updateAlias = async () => {
@@ -201,6 +216,13 @@ onMounted(async () => {
     onPin: async () => {
       return prompt(t("index.enterPin"));
     },
+  });
+
+  // Listen for shared files from the Web Share Target SW handler
+  navigator.serviceWorker.addEventListener("message", (event) => {
+    if (event.data?.type === "share-target") {
+      sharedFiles.value = event.data.files ?? [];
+    }
   });
 });
 </script>

@@ -146,8 +146,25 @@ export default defineNuxtConfig({
           purpose: "any maskable",
         },
       ],
+      share_target: {
+        action: "/",
+        method: "POST",
+        enctype: "multipart/form-data",
+        params: {
+          title: "title",
+          text: "text",
+          url: "url",
+          files: [
+            {
+              name: "files",
+              accept: ["*/*"],
+            },
+          ],
+        },
+      },
     },
     workbox: {
+      importScripts: ["sw-share-target.js"],
       globPatterns: ["/", "**/*.{js,css,html,png,svg,ico}"],
       navigateFallback: "/",
       runtimeCaching: [
