@@ -108,6 +108,13 @@ export default defineNuxtConfig({
         name: "Türkçe",
       },
       {
+        code: "ur",
+        language: "ur-PK",
+        file: "ur.json",
+        name: "اردو",
+        dir: "rtl",
+      },
+      {
         code: "zh-CN",
         language: "zh-CN",
         file: "zh-CN.json",
