@@ -10,12 +10,12 @@
       </h1>
 
       <div class="flex">
-        <span class="flex-1 font-bold">Total:</span>
+        <span class="flex-1 font-bold">{{ t("index.progress.total") }}:</span>
         <span>{{ totalCurr }} / {{ totalTotal }}</span>
       </div>
       <ProgressBar :progress="store.session.curr / store.session.total" />
 
-      <p class="mt-4 font-bold">Files:</p>
+      <p class="mt-4 font-bold">{{ t("index.progress.files") }}:</p>
     </div>
 
     <div class="pl-4 pt-2 pr-4 max-h-[300px] overflow-y-auto">

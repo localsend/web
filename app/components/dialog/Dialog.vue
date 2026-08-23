@@ -5,7 +5,7 @@
       class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
     >
       <div
-        class="bg-white w-full max-w-lg mx-4 rounded shadow-md text-black"
+        class="bg-white dark:bg-gray-800 w-full max-w-lg mx-4 rounded shadow-md text-black dark:text-white"
         role="dialog"
         aria-modal="true"
       >

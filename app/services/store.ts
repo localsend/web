@@ -29,6 +29,16 @@ export type FileState = {
   error?: string;
 };
 
+export type ToastMessage = {
+  id: number;
+  message: string;
+  type: "success" | "error" | "info";
+};
+
+export type ConnectionStatus = "connected" | "reconnecting" | "disconnected";
+
+let toastIdCounter = 0;
+
 export const store = reactive({
   // Whether the connection loop has started
   _loopStarted: false,
@@ -53,6 +63,12 @@ export const store = reactive({
   // List of peers connected to the same room
   peers: [] as ClientInfo[],
 
+  // Connection status
+  connectionStatus: "disconnected" as ConnectionStatus,
+
+  // Toast notifications
+  toasts: [] as ToastMessage[],
+
   // Current session information
   session: {
     state: SessionState.idle,
@@ -61,6 +77,32 @@ export const store = reactive({
     fileState: {} as Record<string, FileState>,
   },
 });
+
+export function showToast(message: string, type: ToastMessage["type"] = "info") {
+  const id = ++toastIdCounter;
+  store.toasts.push({ id, message, type });
+  setTimeout(() => dismissToast(id), 4000);
+}
+
+export function dismissToast(id: number) {
+  store.toasts = store.toasts.filter((t) => t.id !== id);
+}
+
+function showBrowserNotification(title: string, body: string) {
+  if (typeof window === "undefined") return;
+  if (document.visibilityState === "visible") return;
+  if ("Notification" in window && Notification.permission === "granted") {
+    new Notification(title, { body, icon: "/apple-touch-icon.png" });
+  }
+}
+
+export function requestNotificationPermission() {
+  if (typeof window !== "undefined" && "Notification" in window) {
+    if (Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }
+}
 
 export async function setupConnection({
   url,
@@ -82,6 +124,7 @@ export async function setupConnection({
 async function connectionLoop(url: string) {
   while (true) {
     try {
+      store.connectionStatus = "reconnecting";
       store.signaling = await SignalingConnection.connect({
         url: url,
         info: store._proposingClient!,
@@ -90,6 +133,7 @@ async function connectionLoop(url: string) {
             case "HELLO":
               store.client = data.client;
               store.peers = data.peers;
+              store.connectionStatus = "connected";
               break;
             case "JOIN":
               store.peers = [...store.peers, data.peer];
@@ -120,13 +164,15 @@ async function connectionLoop(url: string) {
           store.signaling = null;
           store.client = null;
           store.peers = [];
+          store.connectionStatus = "disconnected";
         },
       });
 
       await store.signaling.waitUntilClose();
     } catch (error) {
+      store.connectionStatus = "reconnecting";
       console.log("Retrying connection in 5 seconds...");
-      await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait before retrying
+      await new Promise((resolve) => setTimeout(resolve, 5000));
     }
   }
 }
@@ -192,6 +238,10 @@ export async function startSendSession({
       },
       onFileProgress: onFileProgress,
     });
+    showToast("Transfer complete!", "success");
+    showBrowserNotification("LocalSend", "Files sent successfully!");
+  } catch (error) {
+    showToast("Transfer failed", "error");
   } finally {
     store.session.state = SessionState.idle;
   }
@@ -250,6 +300,10 @@ export async function acceptOffer({
       },
       onFileProgress: onFileProgress,
     });
+    showToast("Files received!", "success");
+    showBrowserNotification("LocalSend", "Files received successfully!");
+  } catch (error) {
+    showToast("Receiving failed", "error");
   } finally {
     store.session.state = SessionState.idle;
   }
