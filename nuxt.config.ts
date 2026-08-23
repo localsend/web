@@ -60,6 +60,18 @@ export default defineNuxtConfig({
         name: "فارسی",
       },
       {
+        code: "gu",
+        language: "gu-IN",
+        file: "gu.json",
+        name: "ગુજરાતી",
+      },
+      {
+        code: "hi",
+        language: "hi-IN",
+        file: "hi.json",
+        name: "हिन्दी",
+      },
+      {
         code: "hu",
         language: "hu-HU",
         file: "hu.json",

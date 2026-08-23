@@ -1,0 +1,26 @@
+{
+  "index": {
+    "seo": {
+      "title": "LocalSend વેબ",
+      "description": "તમારા બ્રાઉઝર અને LocalSend ચલાવતા અન્ય ઉપકરણો વચ્ચે ફાઇલો શેર કરો."
+    },
+    "connecting": "કનેક્ટ થઈ રહ્યું છે...",
+    "webCryptoNotSupported": "તમારું બ્રાઉઝર LocalSend ને સપોર્ટ કરતું નથી: Web Crypto API જરૂરી છે.",
+    "empty": {
+      "title": "બીજા ઉપકરણ પર LocalSend ખોલો.",
+      "deviceHint": "આ સાઇટને બીજા બ્રાઉઝર અથવા નેટિવ સંસ્કરણ (v1.18.0 અથવા નવું) માં ખોલો.",
+      "lanHint": "ફક્ત સમાન નેટવર્કમાંના ઉપકરણો જ બતાવવામાં આવે છે."
+    },
+    "you": "તમે છો:",
+    "pin": {
+      "label": "PIN: ",
+      "none": "કોઈ નહીં"
+    },
+    "enterAlias": "નામ દાખલ કરો",
+    "enterPin": "PIN દાખલ કરો",
+    "progress": {
+      "titleSending": "ફાઇલો મોકલાઈ રહી છે...",
+      "titleReceiving": "ફાઇલો પ્રાપ્ત થઈ રહી છે..."
+    }
+  }
+}
