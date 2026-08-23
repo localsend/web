@@ -1,0 +1,26 @@
+{
+  "index": {
+    "seo": {
+      "title": "LocalSend 網頁版",
+      "description": "在你的瀏覽器與其他執行 LocalSend 的裝置之間分享檔案。"
+    },
+    "connecting": "連線中...",
+    "webCryptoNotSupported": "你的瀏覽器不支援 LocalSend：需要 Web Crypto API。",
+    "empty": {
+      "title": "請在另一台裝置上開啟 LocalSend。",
+      "deviceHint": "在另一個瀏覽器或原生版本（v1.18.0 或更新版本）開啟此網站。",
+      "lanHint": "只會顯示在同一個網路中的裝置。"
+    },
+    "you": "你是：",
+    "pin": {
+      "label": "PIN：",
+      "none": "無"
+    },
+    "enterAlias": "輸入名稱",
+    "enterPin": "輸入 PIN",
+    "progress": {
+      "titleSending": "正在傳送檔案...",
+      "titleReceiving": "正在接收檔案..."
+    }
+  }
+}
