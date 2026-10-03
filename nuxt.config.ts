@@ -16,6 +16,12 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
+      meta: [
+        {
+          name: "apple-mobile-web-app-title",
+          content: "LocalSend Web",
+        },
+      ],
       link: [
         {
           rel: "icon",
@@ -127,7 +133,7 @@ export default defineNuxtConfig({
     registerType: "autoUpdate",
     manifest: {
       name: "LocalSend Web",
-      short_name: "LocalSend",
+      short_name: "LocalSend Web",
       theme_color: "#111827",
       background_color: "#111827",
       scope: "/",
