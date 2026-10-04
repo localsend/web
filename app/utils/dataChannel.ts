@@ -4,6 +4,36 @@ export const MAX_BUFFERED_AMOUNT = 1024 * 1024; // 1 MiB
 /** Resume refilling once the queue has drained to this, so the wire never idles. */
 export const LOW_BUFFERED_AMOUNT = 256 * 1024; // 256 KiB
 
+/** Message size every peer accepts, the native app included. */
+export const CHUNK_SIZE = 16 * 1024; // 16 KiB
+
+/** Message size for peers that advertise room for larger messages. */
+export const LARGE_CHUNK_SIZE = 64 * 1024; // 64 KiB
+
+/**
+ * Pick the size of file chunks for a connection, from the peer's advertised
+ * limit (RTCSctpTransport.maxMessageSize).
+ *
+ * 64 KiB chunks need a quarter of the sends, message events and progress
+ * updates. Browsers advertise their limit (Chromium 256 KiB). The native
+ * app's WebRTC stack advertises
+ * none, which browsers read as the RFC 8841 default of 64 KiB, yet it reads
+ * each message into a 65,535-byte buffer and closes the channel on anything
+ * larger. So only go above 16 KiB when the peer explicitly allows more than
+ * 64 KiB.
+ */
+export function fileChunkSize(maxMessageSize: number | undefined): number {
+  return maxMessageSize !== undefined && maxMessageSize > LARGE_CHUNK_SIZE
+    ? LARGE_CHUNK_SIZE
+    : CHUNK_SIZE;
+}
+
+/** Send the string that ends a chunked message or the list of files. */
+export function sendDelimiter(dataChannel: RTCDataChannel) {
+  // Not empty: empty messages do not reach the native peer.
+  dataChannel.send("0");
+}
+
 /**
  * Wait until the send queue has drained to the channel's low threshold.
  *
