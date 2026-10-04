@@ -79,6 +79,7 @@
 <script setup lang="ts">
 import { PeerDeviceType } from "@/services/signaling";
 import {
+  cancelSession,
   setupConnection,
   startSendSession,
   store,
@@ -166,6 +167,10 @@ const updatePIN = async () => {
 
 onMounted(async () => {
   webCryptoSupported.value = isWebCryptoSupported();
+
+  // Closing the tab mid-transfer would leave the peer to find out from ICE
+  // timeouts, about 16 s later. Ending the session tells it right away.
+  window.addEventListener("pagehide", cancelSession);
 
   setTimeout(() => {
     // to prevent flickering during initial connection
