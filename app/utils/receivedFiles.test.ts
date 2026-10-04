@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { ReceivedFiles } from "./receivedFiles";
+import { entryName, ReceivedFiles } from "./receivedFiles";
 
 const bytes = (text: string) => new TextEncoder().encode(text).buffer;
 
@@ -31,6 +31,7 @@ test("Should hand over each file in memory as it completes", async () => {
   await b.write(bytes("abc"));
   expect(await b.finish()).toBeUndefined();
 
+  await received.deliver();
   received.release();
   await settled();
   expect(saved).toEqual([
@@ -56,4 +57,13 @@ test("Should reject a file that does not match its declared size", async () => {
 
   await settled();
   expect(saved).toEqual([]);
+});
+
+test("Should keep archive paths inside the archive", () => {
+  expect(entryName("photo.jpg")).toBe("photo.jpg");
+  expect(entryName("folder/sub/photo.jpg")).toBe("folder/sub/photo.jpg");
+  expect(entryName("folder\\photo.jpg")).toBe("folder/photo.jpg");
+  expect(entryName("../../etc/passwd")).toBe("etc/passwd");
+  expect(entryName("/abs//./x")).toBe("abs/x");
+  expect(entryName("..")).toBe("file");
 });

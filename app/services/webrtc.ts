@@ -527,6 +527,9 @@ export async function receiveFiles({
       if (typeof chunk === "string") {
         if (fileState) {
           const error = await fileState.writer.finish();
+          if (chunk.length <= 1) {
+            await receivedFiles.deliver();
+          }
 
           onFileProgress({
             id: fileState.id,
