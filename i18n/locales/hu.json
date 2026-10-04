@@ -20,7 +20,8 @@
     "enterPin": "Adj meg egy PIN-kódot:",
     "progress": {
       "titleSending": "Fájlok küldése folyamatban...",
-      "titleReceiving": "Fájlok fogadása folyamatban..."
+      "titleReceiving": "Fájlok fogadása folyamatban...",
+      "cancel": "Mégse"
     }
   }
 }

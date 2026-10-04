@@ -20,7 +20,8 @@
     "enterPin": "Zadajte PIN",
     "progress": {
       "titleSending": "Odosielanie súborov...",
-      "titleReceiving": "Prijímanie súborov..."
+      "titleReceiving": "Prijímanie súborov...",
+      "cancel": "Zrušiť"
     }
   }
 }

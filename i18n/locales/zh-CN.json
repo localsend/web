@@ -20,7 +20,8 @@
     "enterPin": "设置 PIN",
     "progress": {
       "titleSending": "发送文件中...",
-      "titleReceiving": "文件接收中..."
+      "titleReceiving": "文件接收中...",
+      "cancel": "取消"
     }
   }
 }

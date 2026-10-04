@@ -14,23 +14,14 @@ import pako from "pako";
 import { saveFileFromBytes } from "~/utils/fileSaver";
 import { generateNonce, validateNonce } from "~/utils/nonce";
 import { generateClientTokenFromNonce } from "~/services/crypto";
+import { waitICEGathering } from "~/utils/iceGathering";
+import { SessionLifetime } from "~/utils/sessionLifetime";
 
 export const protocolVersion = "2.3";
 
 export const defaultStun = ["stun:stun.l.google.com:19302"];
 
-export async function sendFiles({
-  signaling,
-  stunServers,
-  fileDtoList,
-  fileMap,
-  targetId,
-  signingKey,
-  pin,
-  onPin,
-  onFilesSkip,
-  onFileProgress,
-}: {
+export type SendFilesOptions = {
   signaling: SignalingConnection;
   stunServers: string[];
   fileDtoList: FileDto[];
@@ -41,16 +32,45 @@ export async function sendFiles({
   onPin: () => Promise<string | null>;
   onFilesSkip: (fileIds: string[]) => void;
   onFileProgress: (progress: FileProgress) => void;
-}) {
+  /** Cancels the session: closes the connection and stops every wait. */
+  signal?: AbortSignal;
+};
+
+export async function sendFiles(options: SendFilesOptions) {
+  const session = new SessionLifetime(options.signal);
+  try {
+    await sendFilesInSession(session, options);
+  } finally {
+    // Whichever way the session ends, close the connection, so that the peer
+    // is not left waiting for us either.
+    session.end(new Error("Session finished"));
+  }
+}
+
+async function sendFilesInSession(
+  session: SessionLifetime,
+  {
+    signaling,
+    stunServers,
+    fileDtoList,
+    fileMap,
+    targetId,
+    signingKey,
+    pin,
+    onPin,
+    onFilesSkip,
+    onFileProgress,
+  }: SendFilesOptions,
+) {
   console.log("Sending to target:", targetId);
   console.log("Sending files:", fileDtoList);
 
-  const peerConnection = await createPeerConnection(stunServers);
+  const peerConnection = await createPeerConnection(stunServers, session);
 
   const dataChannel = peerConnection.createDataChannel("data");
   dataChannel.binaryType = "arraybuffer";
   dataChannel.bufferedAmountLowThreshold = LOW_BUFFERED_AMOUNT;
-  const dataChannelStream = createStreamController(dataChannel);
+  const dataChannelStream = createStreamController(dataChannel, session);
   const dataChannelOpened = new Promise<void>((resolve) => {
     dataChannel.onopen = () => resolve();
   });
@@ -75,7 +95,9 @@ export async function sendFiles({
 
   console.log("Waiting for answer...");
 
-  const answer = await signaling.waitForAnswer(sessionId);
+  const answer = await session.until(
+    signaling.waitForAnswer(sessionId, targetId),
+  );
   const answerSdp = decodeSdp(answer.sdp);
 
   console.log("Received answer SDP: ", answerSdp);
@@ -85,7 +107,7 @@ export async function sendFiles({
     sdp: answerSdp,
   });
 
-  await dataChannelOpened;
+  await session.until(dataChannelOpened);
 
   console.log("Data channel opened. Exchanging nonce...");
 
@@ -304,16 +326,7 @@ export async function sendFiles({
   console.log("Connection closed");
 }
 
-export async function receiveFiles({
-  signaling,
-  stunServers,
-  offer,
-  signingKey,
-  pin,
-  onPin,
-  selectFiles,
-  onFileProgress,
-}: {
+export type ReceiveFilesOptions = {
   signaling: SignalingConnection;
   stunServers: string[];
   offer: WsServerSdpMessage;
@@ -322,11 +335,38 @@ export async function receiveFiles({
   onPin: () => Promise<string | null>;
   selectFiles: (files: FileDto[]) => Promise<string[]>;
   onFileProgress: (progress: FileProgress) => void;
-}) {
+  /** Cancels the session: closes the connection and stops every wait. */
+  signal?: AbortSignal;
+};
+
+export async function receiveFiles(options: ReceiveFilesOptions) {
+  const session = new SessionLifetime(options.signal);
+  try {
+    await receiveFilesInSession(session, options);
+  } finally {
+    // Whichever way the session ends, close the connection, so that the peer
+    // is not left waiting for us either.
+    session.end(new Error("Session finished"));
+  }
+}
+
+async function receiveFilesInSession(
+  session: SessionLifetime,
+  {
+    signaling,
+    stunServers,
+    offer,
+    signingKey,
+    pin,
+    onPin,
+    selectFiles,
+    onFileProgress,
+  }: ReceiveFilesOptions,
+) {
   console.log("Accepting offer from:", offer.peer.id);
   console.log("Remote SDP: ", decodeSdp(offer.sdp));
 
-  const peerConnection = await createPeerConnection(stunServers);
+  const peerConnection = await createPeerConnection(stunServers, session);
 
   const dataChannelPromise = new Promise<RTCDataChannel>((resolve) => {
     peerConnection.ondatachannel = (event) => {
@@ -356,16 +396,21 @@ export async function receiveFiles({
 
   console.log("Waiting for data channel...");
 
-  const dataChannel = await dataChannelPromise;
+  const dataChannel = await session.until(dataChannelPromise);
   dataChannel.binaryType = "arraybuffer";
 
   console.log("Received data channel");
 
-  const dataChannelStream = createStreamController(dataChannel);
+  const dataChannelStream = createStreamController(dataChannel, session);
 
-  await new Promise<void>((resolve) => {
-    dataChannel.onopen = () => resolve();
-  });
+  // The channel can already be open by the time it is announced.
+  if (dataChannel.readyState !== "open") {
+    await session.until(
+      new Promise<void>((resolve) => {
+        dataChannel.onopen = () => resolve();
+      }),
+    );
+  }
 
   console.log("Data channel opened. Exchanging nonce...");
 
@@ -510,6 +555,7 @@ export async function receiveFiles({
   const dataChannelIterator = dataChannelStream.createAsyncIterator();
   let fileState: { id: string; chunks: ArrayBuffer[]; curr: number } | null =
     null;
+  let finished = false;
   for await (const chunk of dataChannelIterator.asyncIterator) {
     if (typeof chunk === "string") {
       if (fileState) {
@@ -531,14 +577,15 @@ export async function receiveFiles({
             success: true,
           } as RTCSendFileResponse),
         );
+      }
 
-        if (chunk.length <= 1) {
-          // End of all files
-          // Wait for the last status to be sent
-          fileState = null;
-          await waitBufferEmpty(dataChannel);
-          break;
-        }
+      if (chunk.length <= 1) {
+        // End of all files
+        // Wait for the last status to be sent
+        fileState = null;
+        await waitBufferEmpty(dataChannel);
+        finished = true;
+        break;
       }
 
       const header = JSON.parse(chunk) as RTCSendFileHeaderRequest;
@@ -561,12 +608,19 @@ export async function receiveFiles({
   }
   dataChannelIterator.releaseLock();
 
+  if (!finished) {
+    // The stream ended before the last file: the peer went away or the
+    // session was cancelled.
+    throw session.endReason ?? new Error("Connection closed before all files");
+  }
+
   dataChannel.close();
   peerConnection.close();
 }
 
 async function createPeerConnection(
   stunServers: string[],
+  session: SessionLifetime,
 ): Promise<RTCPeerConnection> {
   const peerConnection = new RTCPeerConnection({
     iceServers:
@@ -593,14 +647,39 @@ async function createPeerConnection(
     );
   };
 
+  // A failed connection delivers nothing more, so end the session instead of
+  // waiting on it.
+  peerConnection.onconnectionstatechange = () => {
+    if (peerConnection.connectionState === "failed") {
+      session.end(new Error("Connection failed"));
+    }
+  };
+  session.onEnd(() => peerConnection.close());
+
   return peerConnection;
 }
 
-function createStreamController(dataChannel: RTCDataChannel) {
+function createStreamController(
+  dataChannel: RTCDataChannel,
+  session: SessionLifetime,
+) {
   const dataChannelStream = new StreamController<string | ArrayBuffer>();
   dataChannel.onmessage = (event) => {
     dataChannelStream.add(event.data);
   };
+
+  // Nothing more arrives once the peer closes the channel. Ending the
+  // session ends the stream, so pending reads fail instead of waiting
+  // forever; what already arrived is still read first. Closing the
+  // connection does not fire this event, hence the explicit close on end.
+  dataChannel.addEventListener("close", () => {
+    session.end(new Error("Data channel closed"));
+  });
+  session.onEnd(() => {
+    dataChannelStream.close();
+    dataChannel.close();
+  });
+
   return dataChannelStream;
 }
 
@@ -861,21 +940,8 @@ function arrayBufferToString(arrayBuffers: ArrayBuffer[]): string {
 }
 
 async function waitBufferEmpty(dataChannel: RTCDataChannel) {
-  while (dataChannel.bufferedAmount > 0) {
+  // bufferedAmount does not reset when the channel closes.
+  while (dataChannel.bufferedAmount > 0 && dataChannel.readyState === "open") {
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
-}
-
-async function waitICEGathering(localConnection: RTCPeerConnection) {
-  if (localConnection.iceGatheringState === "complete") {
-    return;
-  }
-
-  await new Promise<void>((resolve) => {
-    localConnection.onicegatheringstatechange = () => {
-      if (localConnection.iceGatheringState === "complete") {
-        resolve();
-      }
-    };
-  });
 }

@@ -20,7 +20,8 @@
     "enterPin": "PINを入力",
     "progress": {
       "titleSending": "ファイルを送信中...",
-      "titleReceiving": "ファイルを受信中..."
+      "titleReceiving": "ファイルを受信中...",
+      "cancel": "キャンセル"
     }
   }
 }

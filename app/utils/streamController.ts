@@ -4,6 +4,7 @@
 export class StreamController<T> {
   private _stream: ReadableStream<T>;
   private _controller: ReadableStreamDefaultController<T>;
+  private _closed = false;
 
   constructor() {
     let controller!: ReadableStreamDefaultController<T>;
@@ -16,7 +17,23 @@ export class StreamController<T> {
   }
 
   public add(data: T) {
+    if (this._closed) {
+      return;
+    }
     this._controller.enqueue(data);
+  }
+
+  /**
+   * End the stream. Data added before is still read; after that, readNext
+   * rejects and iterators finish, instead of waiting for data that will
+   * never come.
+   */
+  public close() {
+    if (this._closed) {
+      return;
+    }
+    this._closed = true;
+    this._controller.close();
   }
 
   public async readNext(): Promise<T> {
