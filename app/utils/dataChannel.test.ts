@@ -8,6 +8,7 @@ import {
 class FakeDataChannel extends EventTarget {
   bufferedAmount = 0;
   bufferedAmountLowThreshold = LOW_BUFFERED_AMOUNT;
+  readyState: RTCDataChannelState = "open";
 }
 
 const fake = (bufferedAmount: number) => {
@@ -44,6 +45,16 @@ test("Should reject when the channel closes", async () => {
   const waiting = waitBufferDrained(channel as unknown as RTCDataChannel);
   channel.dispatchEvent(new Event("close"));
   await expect(waiting).rejects.toThrow("Data channel closed while sending");
+});
+
+test("Should reject when the channel closed before waiting", async () => {
+  // The close event already fired and bufferedAmount stays high after close,
+  // so without a readyState check this would never settle.
+  const channel = fake(2 * 1024 * 1024);
+  channel.readyState = "closed";
+  await expect(
+    waitBufferDrained(channel as unknown as RTCDataChannel),
+  ).rejects.toThrow("Data channel closed while sending");
 });
 
 const sequence = (length: number) =>
@@ -106,4 +117,21 @@ test("Should carry data across read boundaries", async () => {
 test("Should yield nothing for an empty file", async () => {
   const chunks = await collect(new File([], "d.bin"), 1024);
   expect(chunks).toEqual([]);
+});
+
+test("Should release the file when the consumer stops early", async () => {
+  let cancelled = false;
+  const file = new File([], "e.bin");
+  file.stream = () =>
+    new ReadableStream({
+      pull: (controller) => controller.enqueue(sequence(4096)),
+      cancel: () => {
+        cancelled = true;
+      },
+    });
+
+  for await (const _ of chunkStream(file, 1024)) {
+    break;
+  }
+  expect(cancelled).toBe(true);
 });

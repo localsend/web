@@ -14,6 +14,13 @@ export const LOW_BUFFERED_AMOUNT = 256 * 1024; // 256 KiB
  */
 export function waitBufferDrained(dataChannel: RTCDataChannel): Promise<void> {
   return new Promise((resolve, reject) => {
+    // A close that fired before we got here would never reach the listeners,
+    // and bufferedAmount does not reset on close, so nothing would wake us.
+    if (dataChannel.readyState !== "open") {
+      reject(new Error("Data channel closed while sending"));
+      return;
+    }
+
     const cleanup = () => {
       dataChannel.removeEventListener("bufferedamountlow", onDrained);
       dataChannel.removeEventListener("close", onClosed);
@@ -53,40 +60,45 @@ export function waitBufferDrained(dataChannel: RTCDataChannel): Promise<void> {
 export async function* chunkStream(
   file: File,
   chunkSize: number,
-): AsyncGenerator<Uint8Array> {
+): AsyncGenerator<Uint8Array<ArrayBuffer>> {
   const reader = file.stream().getReader();
 
   // Tail of the previous read, when it did not end on a chunk boundary.
-  let pending: Uint8Array | null = null;
+  let pending: Uint8Array<ArrayBuffer> | null = null;
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) {
-      break;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        break;
+      }
+
+      let block = value;
+      if (pending) {
+        // Copies the carried-over tail, never the whole file.
+        const merged = new Uint8Array(pending.length + value.length);
+        merged.set(pending);
+        merged.set(value, pending.length);
+        block = merged;
+        pending = null;
+      }
+
+      let offset = 0;
+      while (block.length - offset >= chunkSize) {
+        yield block.subarray(offset, offset + chunkSize);
+        offset += chunkSize;
+      }
+
+      if (offset < block.length) {
+        pending = block.subarray(offset);
+      }
     }
 
-    let block = value;
-    if (pending) {
-      // Copies the carried-over tail, never the whole file.
-      const merged = new Uint8Array(pending.length + value.length);
-      merged.set(pending);
-      merged.set(value, pending.length);
-      block = merged;
-      pending = null;
+    if (pending && pending.length > 0) {
+      yield pending;
     }
-
-    let offset = 0;
-    while (block.length - offset >= chunkSize) {
-      yield block.subarray(offset, offset + chunkSize);
-      offset += chunkSize;
-    }
-
-    if (offset < block.length) {
-      pending = block.subarray(offset);
-    }
-  }
-
-  if (pending && pending.length > 0) {
-    yield pending;
+  } finally {
+    // Release the file when the consumer stops early, e.g. on a send error.
+    reader.cancel().catch(() => {});
   }
 }
