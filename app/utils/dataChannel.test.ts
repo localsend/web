@@ -1,6 +1,9 @@
 import { expect, test } from "vitest";
 import {
+  CHUNK_SIZE,
   chunkStream,
+  fileChunkSize,
+  LARGE_CHUNK_SIZE,
   LOW_BUFFERED_AMOUNT,
   waitBufferDrained,
 } from "./dataChannel";
@@ -134,4 +137,13 @@ test("Should release the file when the consumer stops early", async () => {
     break;
   }
   expect(cancelled).toBe(true);
+});
+
+test("Should keep 16 KiB chunks unless the peer allows more than 64 KiB", () => {
+  expect(fileChunkSize(undefined)).toBe(CHUNK_SIZE);
+  // What browsers report for a peer that advertises no limit, like the
+  // native app, whose WebRTC stack closes the channel above 65,535 bytes.
+  expect(fileChunkSize(65536)).toBe(CHUNK_SIZE);
+  expect(fileChunkSize(262144)).toBe(LARGE_CHUNK_SIZE);
+  expect(fileChunkSize(Infinity)).toBe(LARGE_CHUNK_SIZE);
 });

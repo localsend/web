@@ -5,11 +5,12 @@ import {
 import { decodeBase64, encodeBase64 } from "~/utils/base64";
 import { StreamController } from "~/utils/streamController";
 import {
-  chunkStream,
+  CHUNK_SIZE,
+  fileChunkSize,
   LOW_BUFFERED_AMOUNT,
-  MAX_BUFFERED_AMOUNT,
-  waitBufferDrained,
+  sendDelimiter,
 } from "~/utils/dataChannel";
+import { type OutgoingFile, sendFileList } from "~/utils/fileSender";
 import pako from "pako";
 import { saveFileFromBytes } from "~/utils/fileSaver";
 import { generateNonce, validateNonce } from "~/utils/nonce";
@@ -228,71 +229,39 @@ export async function sendFiles({
   );
 
   const skippedFiles: string[] = [];
-  fileDtoList = fileDtoList.filter((file) => {
-    const hasToken = fileTokens[file.id];
-    if (!hasToken) {
-      skippedFiles.push(file.id);
+  const files: OutgoingFile[] = [];
+  for (const fileDto of fileDtoList) {
+    const token = fileTokens[fileDto.id];
+    const file = fileMap[fileDto.id];
+    if (token && file) {
+      files.push({ id: fileDto.id, token, file });
+    } else {
+      skippedFiles.push(fileDto.id);
     }
-    return hasToken;
-  });
+  }
 
   if (skippedFiles.length > 0) {
     onFilesSkip(skippedFiles);
   }
 
-  const startTime = Date.now();
-
-  const firstFileDto = fileDtoList[0];
-  dataChannel.send(
-    JSON.stringify({
-      id: firstFileDto.id,
-      token: fileTokens[firstFileDto.id],
-    } as RTCSendFileHeaderRequest),
-  );
-
-  for (let i = 0; i < fileDtoList.length; i++) {
-    const fileDto = fileDtoList[i];
-
-    const file = fileMap[fileDto.id];
-    const fileSize = file.size;
-    console.log(`Sending file: ${fileDto.fileName}`);
-    await sendFileInChunks(dataChannel, file, (bytes) => {
-      onFileProgress({
-        id: fileDto.id,
-        curr: bytes,
-      });
-    });
-
-    if (i + 1 < fileDtoList.length) {
-      const nextFileDto = fileDtoList[i + 1];
-      const fileToken = fileTokens[nextFileDto.id];
-
-      dataChannel.send(
-        JSON.stringify({
-          id: nextFileDto.id,
-          token: fileToken,
-        } as RTCSendFileHeaderRequest),
-      );
-    } else {
-      sendDelimiter(dataChannel);
-    }
-
-    console.log("Waiting for file status...");
-    const fileStatus = await dataChannelStream.readNext();
-    if (typeof fileStatus !== "string") {
-      throw new Error("Expected string");
-    }
-
-    const response = JSON.parse(fileStatus) as RTCSendFileResponse;
-    onFileProgress({
-      id: fileDto.id,
-      curr: fileSize,
-      success: response.success,
-      error: response.error,
-    });
+  if (files.length === 0) {
+    console.log("No files selected");
+    dataChannel.close();
+    peerConnection.close();
+    return;
   }
 
-  const sumSize = fileDtoList.reduce((sum, file) => sum + file.size, 0);
+  const startTime = Date.now();
+
+  await sendFileList({
+    dataChannel,
+    dataChannelStream,
+    files,
+    chunkSize: fileChunkSize(peerConnection.sctp?.maxMessageSize),
+    onFileProgress,
+  });
+
+  const sumSize = files.reduce((sum, { file }) => sum + file.size, 0);
 
   console.log(
     `Finished in ${Date.now() - startTime} ms. Speed: ${(sumSize * 1000) / (Date.now() - startTime) / (1024 * 1024)} MB/s`,
@@ -482,18 +451,18 @@ export async function receiveFiles({
 
   console.log("Received file list:", fileList);
 
-  const selectedFiles = await selectFiles(fileList);
+  const selectedFiles = new Set(await selectFiles(fileList));
 
   const selectedFilesMap: Record<string, FileDto> = {};
   const selectedFilesTokens: Record<string, string> = {};
   for (const file of fileList) {
-    if (selectedFiles.includes(file.id)) {
+    if (selectedFiles.has(file.id)) {
       selectedFilesMap[file.id] = file;
       selectedFilesTokens[file.id] = Math.random().toString();
     }
   }
 
-  console.log(`Selected files: ${selectedFiles.length} / ${fileList.length}`);
+  console.log(`Selected files: ${selectedFiles.size} / ${fileList.length}`);
 
   sendStringInChunks(
     dataChannel,
@@ -808,41 +777,10 @@ async function receiveStringFromChunks(
   return arrayBufferToString(chunks);
 }
 
-function sendDelimiter(dataChannel: RTCDataChannel) {
-  dataChannel.send("0");
-}
-
-const CHUNK_SIZE = 16 * 1024; // 16 KiB
-
 function sendStringInChunks(dataChannel: RTCDataChannel, str: string) {
   const utf8Binary = new TextEncoder().encode(str);
   for (let i = 0; i < utf8Binary.length; i += CHUNK_SIZE) {
     dataChannel.send(utf8Binary.slice(i, i + CHUNK_SIZE));
-  }
-}
-
-/**
- * Send a file in chunks, pausing whenever the send queue is full.
- * @param dataChannel
- * @param file
- * @param onProgress
- */
-async function sendFileInChunks(
-  dataChannel: RTCDataChannel,
-  file: File,
-  onProgress: (bytes: number) => void,
-) {
-  let bytesSent = 0;
-
-  for await (const chunk of chunkStream(file, CHUNK_SIZE)) {
-    if (dataChannel.bufferedAmount > MAX_BUFFERED_AMOUNT) {
-      await waitBufferDrained(dataChannel);
-    }
-
-    dataChannel.send(chunk);
-
-    bytesSent += chunk.length;
-    onProgress(bytesSent);
   }
 }
 

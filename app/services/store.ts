@@ -13,6 +13,7 @@ import {
   sendFiles,
 } from "~/services/webrtc";
 import { generateClientTokenFromCurrentTimestamp } from "~/services/crypto";
+import { ProgressBatcher } from "~/utils/progressBatcher";
 
 export enum SessionState {
   idle = "idle",
@@ -153,6 +154,7 @@ export async function startSendSession({
   onPin: () => Promise<string | null>;
 }): Promise<void> {
   store.session.state = SessionState.sending;
+  progressBatcher.flush(); // anything left from the previous session
   const fileState: Record<string, FileState> = {};
 
   const fileDtoList = convertFileListToDto(files);
@@ -234,6 +236,7 @@ export async function acceptOffer({
       onPin: onPin,
       selectFiles: async (files) => {
         // Select all files
+        progressBatcher.flush(); // anything left from the previous session
         store.session.curr = 0;
         store.session.total = files.reduce((acc, file) => acc + file.size, 0);
         store.session.fileState = {};
@@ -255,15 +258,31 @@ export async function acceptOffer({
   }
 }
 
+// Progress arrives once per chunk. Summing every file and re-rendering the
+// dialog each time cost more than the transfer with a few hundred files, so
+// apply the latest values once per frame and keep the total incrementally.
+const progressBatcher = new ProgressBatcher((updates) => {
+  for (const [id, curr] of updates) {
+    const file = store.session.fileState[id];
+    if (!file) {
+      continue;
+    }
+    store.session.curr += curr - file.curr;
+    file.curr = curr;
+  }
+});
+
 function onFileProgress(progress: FileProgress) {
-  store.session.fileState[progress.id].curr = progress.curr;
-  store.session.curr = Object.values(store.session.fileState).reduce(
-    (acc, file) => acc + file.curr,
-    0,
-  );
+  progressBatcher.push(progress.id, progress.curr);
+  if (!progress.success && !progress.error) {
+    return;
+  }
+
+  // Show a file as finished together with its final byte count.
+  progressBatcher.flush();
   if (progress.success) {
     store.session.fileState[progress.id].state = "finished";
-  } else if (progress.error) {
+  } else {
     store.session.fileState[progress.id].state = "error";
     store.session.fileState[progress.id].error = progress.error;
   }
