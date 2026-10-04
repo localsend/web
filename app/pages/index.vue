@@ -87,6 +87,7 @@ import {
 import { getAgentInfoString } from "~/utils/userAgent";
 import { protocolVersion } from "~/services/webrtc";
 import { generateRandomAlias } from "~/utils/alias";
+import { removeReceivedLeftovers } from "~/utils/receivedFiles";
 import { useFileDialog } from "@vueuse/core";
 import SessionDialog from "~/components/dialog/SessionDialog.vue";
 import {
@@ -177,6 +178,8 @@ onMounted(async () => {
     console.error("Web Crypto API is not supported in this browser.");
     return;
   }
+
+  removeReceivedLeftovers();
 
   await upgradeToEd25519IfSupported();
 

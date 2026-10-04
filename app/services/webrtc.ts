@@ -11,7 +11,7 @@ import {
   waitBufferDrained,
 } from "~/utils/dataChannel";
 import pako from "pako";
-import { saveFileFromBytes } from "~/utils/fileSaver";
+import { type FileWriter, ReceivedFiles } from "~/utils/receivedFiles";
 import { generateNonce, validateNonce } from "~/utils/nonce";
 import { generateClientTokenFromNonce } from "~/services/crypto";
 
@@ -507,63 +507,88 @@ export async function receiveFiles({
 
   console.log("Receiving files...");
 
-  const dataChannelIterator = dataChannelStream.createAsyncIterator();
-  let fileState: { id: string; chunks: ArrayBuffer[]; curr: number } | null =
-    null;
-  for await (const chunk of dataChannelIterator.asyncIterator) {
-    if (typeof chunk === "string") {
-      if (fileState) {
-        saveFileFromBytes(
-          new Blob(fileState.chunks),
-          selectedFilesMap[fileState.id].fileName,
-        );
+  const incomingFiles = new Map(
+    Object.values(selectedFilesMap).map((file) => [
+      file.id,
+      {
+        id: file.id,
+        fileName: file.fileName,
+        size: file.size,
+        modified: file.metadata?.modified,
+      },
+    ]),
+  );
+  const receivedFiles = await ReceivedFiles.open([...incomingFiles.values()]);
 
+  const dataChannelIterator = dataChannelStream.createAsyncIterator();
+  let fileState: { id: string; writer: FileWriter; curr: number } | null = null;
+  try {
+    for await (const chunk of dataChannelIterator.asyncIterator) {
+      if (typeof chunk === "string") {
+        if (fileState) {
+          const error = await fileState.writer.finish();
+
+          onFileProgress({
+            id: fileState.id,
+            curr: fileState.curr,
+            success: !error,
+            error,
+          });
+
+          // Send status of last file
+          dataChannel.send(
+            JSON.stringify({
+              id: fileState.id,
+              success: !error,
+              error,
+            } as RTCSendFileResponse),
+          );
+
+          if (chunk.length <= 1) {
+            // End of all files
+            // Wait for the last status to be sent
+            fileState = null;
+            await waitBufferEmpty(dataChannel);
+            break;
+          }
+        }
+
+        const header = JSON.parse(chunk) as RTCSendFileHeaderRequest;
+        const file = incomingFiles.get(header.id);
+        fileState = {
+          id: header.id,
+          writer:
+            file && header.token === selectedFilesTokens[header.id]
+              ? await receivedFiles.begin(file)
+              : rejectedFile,
+          curr: 0,
+        };
+      } else {
+        if (!fileState) {
+          throw new Error("Expected file state");
+        }
+        await fileState.writer.write(chunk);
+        fileState.curr += chunk.byteLength;
         onFileProgress({
           id: fileState.id,
           curr: fileState.curr,
-          success: true,
         });
-
-        // Send status of last file
-        dataChannel.send(
-          JSON.stringify({
-            id: fileState.id,
-            success: true,
-          } as RTCSendFileResponse),
-        );
-
-        if (chunk.length <= 1) {
-          // End of all files
-          // Wait for the last status to be sent
-          fileState = null;
-          await waitBufferEmpty(dataChannel);
-          break;
-        }
       }
-
-      const header = JSON.parse(chunk) as RTCSendFileHeaderRequest;
-      fileState = {
-        id: header.id,
-        chunks: [],
-        curr: 0,
-      };
-    } else {
-      if (!fileState) {
-        throw new Error("Expected file state");
-      }
-      fileState.chunks.push(chunk);
-      fileState.curr += chunk.byteLength;
-      onFileProgress({
-        id: fileState.id,
-        curr: fileState.curr,
-      });
     }
+  } finally {
+    dataChannelIterator.releaseLock();
+    receivedFiles.release();
   }
-  dataChannelIterator.releaseLock();
 
   dataChannel.close();
   peerConnection.close();
 }
+
+/** Takes the data of a file that was not accepted, and reports it. */
+const rejectedFile: FileWriter = {
+  write: async () => {},
+  finish: async () => "File was not accepted",
+};
 
 async function createPeerConnection(
   stunServers: string[],
