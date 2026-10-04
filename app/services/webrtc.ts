@@ -10,9 +10,9 @@ import {
   MAX_BUFFERED_AMOUNT,
   waitBufferDrained,
 } from "~/utils/dataChannel";
-import pako from "pako";
 import { saveFileFromBytes } from "~/utils/fileSaver";
 import { generateNonce, validateNonce } from "~/utils/nonce";
+import { decodeSdp, encodeSdp } from "~/utils/sdp";
 import { generateClientTokenFromNonce } from "~/services/crypto";
 
 export const protocolVersion = "2.3";
@@ -70,13 +70,13 @@ export async function sendFiles({
     type: "OFFER",
     sessionId: sessionId,
     target: targetId,
-    sdp: encodeSdp(localSdp),
+    sdp: await encodeSdp(localSdp),
   });
 
   console.log("Waiting for answer...");
 
   const answer = await signaling.waitForAnswer(sessionId);
-  const answerSdp = decodeSdp(answer.sdp);
+  const answerSdp = await decodeSdp(answer.sdp);
 
   console.log("Received answer SDP: ", answerSdp);
 
@@ -324,7 +324,8 @@ export async function receiveFiles({
   onFileProgress: (progress: FileProgress) => void;
 }) {
   console.log("Accepting offer from:", offer.peer.id);
-  console.log("Remote SDP: ", decodeSdp(offer.sdp));
+  const remoteSdp = await decodeSdp(offer.sdp);
+  console.log("Remote SDP: ", remoteSdp);
 
   const peerConnection = await createPeerConnection(stunServers);
 
@@ -336,7 +337,7 @@ export async function receiveFiles({
 
   await peerConnection.setRemoteDescription({
     type: "offer",
-    sdp: decodeSdp(offer.sdp),
+    sdp: remoteSdp,
   });
 
   console.log("Creating answer...");
@@ -351,7 +352,7 @@ export async function receiveFiles({
     type: "ANSWER",
     sessionId: offer.sessionId,
     target: offer.peer.id,
-    sdp: encodeSdp(localSdp),
+    sdp: await encodeSdp(localSdp),
   });
 
   console.log("Waiting for data channel...");
@@ -710,23 +711,6 @@ type RTCSendFileResponse = {
   success: boolean;
   error?: string;
 };
-
-function encodeSdp(s: string): string {
-  const data = new TextEncoder().encode(s);
-  const compressed = pako.deflate(data);
-  return encodeBase64(compressed);
-}
-
-function decodeSdp(s: string): string {
-  const compressed = decodeBase64(s);
-  const decompressed = pako.inflate(compressed);
-
-  if (!decompressed) {
-    throw new Error("Decompression failed.");
-  }
-
-  return new TextDecoder().decode(decompressed);
-}
 
 async function receiveNonce(
   dataChannelStream: StreamController<string | ArrayBuffer>,
