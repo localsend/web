@@ -1,5 +1,11 @@
 import { encodeStringToBase64 } from "~/utils/base64";
 
+/**
+ * Longest wait for a peer to answer an offer. Answers normally take well
+ * under a second; this only ends the wait for a peer that is gone.
+ */
+const ANSWER_TIMEOUT_MS = 30 * 1000;
+
 export class SignalingConnection {
   private _socket: WebSocket;
   private _onAnswer: OnAnswer | null = null;
@@ -61,6 +67,7 @@ export class SignalingConnection {
       console.log("Signaling connection closed");
       clearInterval(pingInterval);
       clearInterval(fingerprintInterval);
+      instance._onAnswer?.fail(new Error("Signaling connection closed"));
       onClose();
     };
 
@@ -78,6 +85,12 @@ export class SignalingConnection {
       ) {
         instance._onAnswer.callback(message);
         instance._onAnswer = null;
+      } else if (
+        message.type === "LEFT" &&
+        message.peerId === instance._onAnswer?.target
+      ) {
+        // The peer will never answer.
+        instance._onAnswer.fail(new Error("Peer left before answering"));
       }
       onMessage(message);
     };
@@ -90,12 +103,38 @@ export class SignalingConnection {
     this._socket.send(JSON.stringify(message));
   }
 
-  public async waitForAnswer(sessionId: string): Promise<AnswerMessage> {
-    return await new Promise<AnswerMessage>((resolve) => {
-      this._onAnswer = {
-        sessionId,
-        callback: (message) => resolve(message),
+  /**
+   * Wait for the answer to an offer. Rejects if the target leaves, the
+   * signaling connection closes or no answer arrives in time.
+   */
+  public async waitForAnswer(
+    sessionId: string,
+    target: string,
+  ): Promise<AnswerMessage> {
+    return await new Promise<AnswerMessage>((resolve, reject) => {
+      const settle = () => {
+        clearTimeout(timer);
+        if (this._onAnswer === pending) {
+          this._onAnswer = null;
+        }
       };
+      const pending: OnAnswer = {
+        sessionId,
+        target,
+        callback: (message) => {
+          settle();
+          resolve(message);
+        },
+        fail: (error) => {
+          settle();
+          reject(error);
+        },
+      };
+      const timer = setTimeout(
+        () => pending.fail(new Error("No answer from the peer")),
+        ANSWER_TIMEOUT_MS,
+      );
+      this._onAnswer = pending;
     });
   }
 
@@ -110,7 +149,9 @@ export class SignalingConnection {
 
 type OnAnswer = {
   sessionId: string;
+  target: string;
   callback: (message: AnswerMessage) => void;
+  fail: (error: Error) => void;
 };
 
 export type ClientInfoWithoutId = {

@@ -20,7 +20,8 @@
     "enterPin": "گذرواژه را وارد کنید",
     "progress": {
       "titleSending": "در حال فرستادن پرونده‌ها...",
-      "titleReceiving": "در حال گرفتن پرونده‌ها..."
+      "titleReceiving": "در حال گرفتن پرونده‌ها...",
+      "cancel": "لغو"
     }
   }
 }

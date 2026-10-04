@@ -20,7 +20,8 @@
     "enterPin": "Skriv inn PIN",
     "progress": {
       "titleSending": "Sender filer...",
-      "titleReceiving": "Mottar filer..."
+      "titleReceiving": "Mottar filer...",
+      "cancel": "Avbryt"
     }
   }
 }

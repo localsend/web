@@ -19,7 +19,8 @@
     "enterPin": "សូមបញ្ចូលលេខកូដ PIN",
     "progress": {
       "titleSending": "កំពុងផ្ញើឯកសារ...",
-      "titleReceiving": "កំពុងទទួលឯកសារ..."
+      "titleReceiving": "កំពុងទទួលឯកសារ...",
+      "cancel": "បោះបង់"
     }
   }
 }

@@ -20,7 +20,8 @@
     "enterPin": "PIN girin",
     "progress": {
       "titleSending": "Dosyalar gönderiliyor...",
-      "titleReceiving": "Dosyalar alınıyor..."
+      "titleReceiving": "Dosyalar alınıyor...",
+      "cancel": "İptal"
     }
   }
 }

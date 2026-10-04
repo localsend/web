@@ -19,7 +19,8 @@
     "enterPin": "PIN 입력",
     "progress": {
       "titleSending": "파일 전송중...",
-      "titleReceiving": "파일 받는중..."
+      "titleReceiving": "파일 받는중...",
+      "cancel": "취소"
     }
   }
 }

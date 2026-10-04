@@ -25,10 +25,19 @@
         class="mb-4"
       />
     </div>
+
+    <div class="flex justify-end px-4 pb-4">
+      <button
+        class="px-4 py-2 rounded-lg font-medium text-teal-700 hover:bg-gray-100"
+        @click="cancelSession"
+      >
+        {{ t("index.progress.cancel") }}
+      </button>
+    </div>
   </Dialog>
 </template>
 <script setup lang="ts">
-import { SessionState, store } from "~/services/store";
+import { cancelSession, SessionState, store } from "~/services/store";
 import { formatBytes } from "~/utils/fileSize";
 
 const { t } = useI18n();

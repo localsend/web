@@ -143,6 +143,13 @@ function updateClientTokenState(token: string) {
 
 const PIN_MAX_TRIES = 3;
 
+// Cancels the session in progress.
+let sessionAbort: AbortController | null = null;
+
+export function cancelSession() {
+  sessionAbort?.abort();
+}
+
 export async function startSendSession({
   files,
   targetId,
@@ -153,6 +160,8 @@ export async function startSendSession({
   onPin: () => Promise<string | null>;
 }): Promise<void> {
   store.session.state = SessionState.sending;
+  const abort = new AbortController();
+  sessionAbort = abort;
   const fileState: Record<string, FileState> = {};
 
   const fileDtoList = convertFileListToDto(files);
@@ -191,8 +200,14 @@ export async function startSendSession({
         }
       },
       onFileProgress: onFileProgress,
+      signal: abort.signal,
     });
+  } catch (error) {
+    console.error("Send session ended:", error);
   } finally {
+    if (sessionAbort === abort) {
+      sessionAbort = null;
+    }
     store.session.state = SessionState.idle;
   }
 }
@@ -223,6 +238,8 @@ export async function acceptOffer({
   onPin: () => Promise<string | null>;
 }) {
   store.session.state = SessionState.receiving;
+  const abort = new AbortController();
+  sessionAbort = abort;
 
   try {
     await receiveFiles({
@@ -249,8 +266,14 @@ export async function acceptOffer({
         return files.map((file) => file.id);
       },
       onFileProgress: onFileProgress,
+      signal: abort.signal,
     });
+  } catch (error) {
+    console.error("Receive session ended:", error);
   } finally {
+    if (sessionAbort === abort) {
+      sessionAbort = null;
+    }
     store.session.state = SessionState.idle;
   }
 }

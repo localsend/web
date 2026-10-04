@@ -20,7 +20,8 @@
     "enterPin": "PIN eingeben",
     "progress": {
       "titleSending": "Sende Dateien...",
-      "titleReceiving": "Empfange Dateien..."
+      "titleReceiving": "Empfange Dateien...",
+      "cancel": "Abbrechen"
     }
   }
 }
