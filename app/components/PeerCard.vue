@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import { type ClientInfo } from "@/services/signaling";
+import { type ClientInfo, PeerDeviceType } from "@/services/signaling";
 
 const props = defineProps<{
   peer: ClientInfo;
@@ -26,15 +26,15 @@ const props = defineProps<{
 
 const iconName = computed(() => {
   switch (props.peer.deviceType) {
-    case "mobile":
+    case PeerDeviceType.mobile:
       return "material-symbols:smartphone";
-    case "desktop":
+    case PeerDeviceType.desktop:
       return "material-symbols:computer";
-    case "web":
+    case PeerDeviceType.web:
       return "material-symbols:language";
-    case "headless":
+    case PeerDeviceType.headless:
       return "material-symbols:terminal";
-    case "server":
+    case PeerDeviceType.server:
       return "material-symbols:dns";
     default:
       return "material-symbols:help";

@@ -8,6 +8,13 @@ export default defineNuxtConfig({
     "@vite-pwa/nuxt",
   ],
   devtools: { enabled: true },
+  icon: {
+    // Ship the icons in the bundle instead of fetching each one from the
+    // Iconify API when it is first shown.
+    clientBundle: {
+      scan: true,
+    },
+  },
   runtimeConfig: {
     public: {
       signalingUrl:
@@ -164,7 +171,7 @@ export default defineNuxtConfig({
       navigateFallback: "/",
       runtimeCaching: [
         {
-          urlPattern: /^https:\/\/api\.iconify\.design\/.*'/i,
+          urlPattern: /^https:\/\/api\.iconify\.design\/.*/i,
           handler: "CacheFirst",
           options: {
             cacheName: "icons",
