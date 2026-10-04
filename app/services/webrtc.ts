@@ -4,6 +4,12 @@ import {
 } from "~/services/signaling";
 import { decodeBase64, encodeBase64 } from "~/utils/base64";
 import { StreamController } from "~/utils/streamController";
+import {
+  chunkStream,
+  LOW_BUFFERED_AMOUNT,
+  MAX_BUFFERED_AMOUNT,
+  waitBufferDrained,
+} from "~/utils/dataChannel";
 import pako from "pako";
 import { saveFileFromBytes } from "~/utils/fileSaver";
 import { generateNonce, validateNonce } from "~/utils/nonce";
@@ -43,6 +49,7 @@ export async function sendFiles({
 
   const dataChannel = peerConnection.createDataChannel("data");
   dataChannel.binaryType = "arraybuffer";
+  dataChannel.bufferedAmountLowThreshold = LOW_BUFFERED_AMOUNT;
   const dataChannelStream = createStreamController(dataChannel);
   const dataChannelOpened = new Promise<void>((resolve) => {
     dataChannel.onopen = () => resolve();
@@ -807,8 +814,6 @@ function sendDelimiter(dataChannel: RTCDataChannel) {
 
 const CHUNK_SIZE = 16 * 1024; // 16 KiB
 
-const MAX_BUFFERED_AMOUNT = 1024 * 1024; // 1 MiB
-
 function sendStringInChunks(dataChannel: RTCDataChannel, str: string) {
   const utf8Binary = new TextEncoder().encode(str);
   for (let i = 0; i < utf8Binary.length; i += CHUNK_SIZE) {
@@ -817,8 +822,7 @@ function sendStringInChunks(dataChannel: RTCDataChannel, str: string) {
 }
 
 /**
- * Send a file in chunks.
- * It buffers until CHUNK_SIZE is reached and splits if the buffer too large.
+ * Send a file in chunks, pausing whenever the send queue is full.
  * @param dataChannel
  * @param file
  * @param onProgress
@@ -828,40 +832,17 @@ async function sendFileInChunks(
   file: File,
   onProgress: (bytes: number) => void,
 ) {
-  const reader = file.stream().getReader();
-  let buffer = new Uint8Array(0);
   let bytesSent = 0;
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) {
-      // No more data from file; send remaining buffer if it has any data.
-      if (buffer.length > 0) {
-        dataChannel.send(buffer);
-      }
-      break;
+  for await (const chunk of chunkStream(file, CHUNK_SIZE)) {
+    if (dataChannel.bufferedAmount > MAX_BUFFERED_AMOUNT) {
+      await waitBufferDrained(dataChannel);
     }
 
-    const newBuffer = new Uint8Array(buffer.length + value.length);
-    newBuffer.set(buffer);
-    newBuffer.set(value, buffer.length);
-    buffer = newBuffer;
+    dataChannel.send(chunk);
 
-    // As long as the buffer is large enough to contain at least one chunk, send chunks.
-    while (buffer.length >= CHUNK_SIZE) {
-      while (dataChannel.bufferedAmount > MAX_BUFFERED_AMOUNT) {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      }
-
-      const chunkToSend = buffer.slice(0, CHUNK_SIZE);
-      dataChannel.send(chunkToSend);
-
-      bytesSent += chunkToSend.length;
-      onProgress(bytesSent);
-
-      // Remove the chunk from buffer
-      buffer = buffer.slice(CHUNK_SIZE);
-    }
+    bytesSent += chunk.length;
+    onProgress(bytesSent);
   }
 }
 
