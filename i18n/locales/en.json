@@ -7,8 +7,8 @@
     "connecting": "Connecting...",
     "webCryptoNotSupported": "Your browser does not support LocalSend: Web Crypto API is required.",
     "empty": {
-      "title": "Open LocalSend on another device.",
-      "deviceHint": "Open this site in another browser. Support for the native app will be added in a future version.",
+      "title": "Open this site on another device.",
+      "deviceHint": "Do not use the LocalSend app. It cannot connect to this site yet.",
       "lanHint": "Only devices in the same network are shown."
     },
     "you": "You are:",
