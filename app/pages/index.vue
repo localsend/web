@@ -83,6 +83,7 @@ import {
   startSendSession,
   store,
   updateAliasState,
+  setPinState,
 } from "@/services/store";
 import { getAgentInfoString } from "~/utils/userAgent";
 import { protocolVersion } from "~/services/webrtc";
@@ -108,6 +109,20 @@ const { t } = useI18n();
 
 const { open: openFileDialog, onChange } = useFileDialog();
 
+const minDelayFinished = ref(false);
+
+const webCryptoSupported = ref(true);
+
+const targetId = ref("");
+
+const promptAndSavePin = async (): Promise<string | null> => {
+  const pin = prompt(t("index.enterPin"));
+  if (pin !== null) {
+    setPinState(pin);
+  }
+  return pin;
+};
+
 onChange(async (files) => {
   if (!files) return;
 
@@ -118,16 +133,9 @@ onChange(async (files) => {
   await startSendSession({
     files,
     targetId: targetId.value,
-    onPin: async () => {
-      return prompt(t("index.enterPin"));
-    },
+    onPin: promptAndSavePin,
   });
 });
-
-const minDelayFinished = ref(false);
-const webCryptoSupported = ref(true);
-
-const targetId = ref("");
 
 const selectPeer = (id: string) => {
   targetId.value = id;
@@ -160,7 +168,7 @@ const updateAlias = async () => {
 const updatePIN = async () => {
   const pin = prompt(t("index.enterPin"));
   if (typeof pin === "string") {
-    store.pin = pin ? pin : null;
+    setPinState(pin ? pin : null);
   }
 };
 
@@ -198,9 +206,7 @@ onMounted(async () => {
   await setupConnection({
     url: runtimeConfig.public.signalingUrl,
     info,
-    onPin: async () => {
-      return prompt(t("index.enterPin"));
-    },
+    onPin: promptAndSavePin,
   });
 });
 </script>

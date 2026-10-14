@@ -42,8 +42,7 @@ export const store = reactive({
   key: null as CryptoKeyPair | null,
 
   /// PIN code used before receiving or sending files
-  pin: null as string | null,
-
+  pin: sessionStorage.getItem("transfer_pin") ?? null,
   // Signaling connection to the server
   signaling: null as SignalingConnection | null,
 
@@ -129,6 +128,20 @@ async function connectionLoop(url: string) {
       await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait before retrying
     }
   }
+}
+watch(
+  () => store.pin,
+  (newPin) => {
+    if (newPin) {
+      sessionStorage.setItem("transfer_pin", newPin);
+    } else {
+      sessionStorage.removeItem("transfer_pin");
+    }
+  },
+  { immediate: false }
+);
+export function setPinState(pin: string | null) {
+  store.pin = (pin && pin.trim() !== "") ? pin : null;
 }
 
 export function updateAliasState(alias: string) {
