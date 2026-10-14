@@ -66,6 +66,12 @@ export default defineNuxtConfig({
         name: "فارسی",
       },
       {
+        code: "fr",
+        language: "fr-FR",
+        file: "fr.json",
+        name: "Français",
+      },
+      {
         code: "hu",
         language: "hu-HU",
         file: "hu.json",
