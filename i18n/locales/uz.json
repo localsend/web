@@ -1,0 +1,26 @@
+{
+  "index": {
+    "seo": {
+      "title": "LocalSend Web",
+      "description": "Brauzeringiz va LocalSend örnatilgan boşqa qurilmalar örtasida fayllarni uzating."
+    },
+    "connecting": "Ulanmoqda...",
+    "webCryptoNotSupported": "Brauzeringiz LocalSendʼni qöllab-quvvatlamaydi: Web Crypto API talab qilinadi.",
+    "empty": {
+      "title": "Boşqa qurilmada LocalSendʼni oçing.",
+      "deviceHint": "Uşbu saytni boşqa brauzerda oçing. Ilova bilan işlaş imkoniyati kelgusi versiyalarda qöşiladi.",
+      "lanHint": "Faqat bitta tarmoqqa ulangan qurilmalar körsatiladi."
+    },
+    "you": "Siz:",
+    "pin": {
+      "label": "PIN: ",
+      "none": "yöq"
+    },
+    "enterAlias": "Ismingizni kiriting",
+    "enterPin": "PIN kiriting",
+    "progress": {
+      "titleSending": "Fayllar jönatilmoqda...",
+      "titleReceiving": "Fayllar qabul qilinmoqda..."
+    }
+  }
+}
